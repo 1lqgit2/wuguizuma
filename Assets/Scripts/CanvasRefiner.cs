@@ -1,0 +1,55 @@
+using System;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+public class CanvasRefiner : MonoBehaviour
+{
+	public bool isFullScreen;
+
+	private RectTransform tr;
+
+	private void Start()
+	{
+		tr = GetComponent<RectTransform>();
+		OnScreenSizeChanged();
+		UICamera instance = UICamera.instance;
+		instance.onScreenSizeChanged = (Action)Delegate.Combine(instance.onScreenSizeChanged, new Action(OnScreenSizeChanged));
+	}
+
+	private void OnEnable()
+	{
+		SceneManager.sceneLoaded += OnSceneLoaded;
+	}
+
+	private void OnDisable()
+	{
+		SceneManager.sceneLoaded -= OnSceneLoaded;
+	}
+
+	private void OnDestroy()
+	{
+		if (UICamera.instance != null)
+		{
+			UICamera instance = UICamera.instance;
+			instance.onScreenSizeChanged = (Action)Delegate.Remove(instance.onScreenSizeChanged, new Action(OnScreenSizeChanged));
+		}
+	}
+
+	private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+	{
+		tr = GetComponent<RectTransform>();
+		OnScreenSizeChanged();
+	}
+
+	private void OnScreenSizeChanged()
+	{
+		if (isFullScreen)
+		{
+			tr.sizeDelta = new Vector2(UICamera.instance.virtualWidth, UICamera.instance.virtualHeight);
+		}
+		else
+		{
+			tr.sizeDelta = new Vector2(UICamera.instance.GetWidth() * 200f, UICamera.instance.GetHeight() * 200f);
+		}
+	}
+}
